@@ -1,0 +1,4 @@
+## Tips and tricks
+
+- restart network manager, if wifi doesn't connects
+command: sudo service network-manager restart
