@@ -1125,5 +1125,27 @@ document.head.appendChild(imported);
 
 - Check properties of the file. (jpg, pdf etc)
 - Is it what it seems to be?
+- Resource Manager > Netowrk Tab > TCP connections > check process name, remote address and port, remote address is hacker ip (look up reverse DNS of IP address)
 - Run the file in a virtual machine and check resources.
 - Use an online Sandbox service. > <https://www.hybrid-analysis.com/>
+- sandbox runs application in controlled environment and check if application do any suspicious activity like making connections to a port to another ip
+
+## Gaining Access outside the Local Network
+
+- all thing remian same, just configure your router to listen to requests and forward to machine on port that you are listening on
+- give ip of your router to target/victim
+- use veil-evasion to create backdoor, give your public IP(router IP, search google myIP to get public IP) as LHOST
+- put backdoor in /var/www/html (and run apache web server)
+- start listening to connections on LPORT using exploit/multi/handler
+  - LHOST : local IP address (private IP)
+  - LPORT : listening port
+- enable port forwarding on router
+- router setting : 192.168.0.1
+- look for something like IP FOrwarding/ virtual Network  etc to enable forwarding
+- give public port and target port
+- give target IP, hacker machine IP
+- **Using BeEF outside of network**
+- update public IP in inject_beef.js (section: Hooking Targets with Bettercap)
+- port forwarding on router for port 3000 (beEF listens on port 3000)
+- send request from machine on different network to your publicIP and 3000 port
+- ***DMZ Address*** : forward all the ports to given IP address
